@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+
+  <title>HAVEN SHOPPER</title>
+  <style>
+    :root {
+      --card-min: 100px;
+      --card-max: 180px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Prompt', sans-serif;
+      font-weight: 100;
+      background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+
+      min-height: 100vh;
+    }
+
+    /* ====== HEADER และ MENU ====== */
+    .header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      padding: 15px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1 {
+      text-align: center;
+      margin: 0 0 20px 0;
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(45deg, #ffa8a8, #ff1818);
+
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .category-menu {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+
+    .category-btn {
+      padding: 12px 15px;
+      border: none;
+      border-radius: 25px;
+      background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+      color: #333;
+      font-family: 'Prompt', sans-serif;
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: capitalize;
+      white-space: nowrap;
+    }
+
+    .category-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+
+
+    }
+
+    .category-btn.active {
+      background: linear-gradient(45deg, #899bec, #4a494c);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .category-menu {
+        gap: 8px;
+        padding: 0 16px;
+      }
+
+      .category-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+      }
+    }
+
+    /* ====== GRID หลัก ====== */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      padding: 32px 16px;
+      max-width: 1200px;
+      margin: 0 auto;
+      background: rgba(243, 223, 223, 0.1);
+      border-radius: 20px;
+      margin-top: 20px;
+      backdrop-filter: blur(5px);
+    }
+
+    @media (min-width: 480px) {
+      .menu-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+        padding: 40px 20px;
+      }
+    }
+
+    @media (min-width: 768px) {
+      .menu-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        padding: 48px 24px;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .menu-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        padding: 56px 32px;
+      }
+    }
+
+    @media (min-width: 1280px) {
+      .menu-grid {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+
+    /* ====== CARD ====== */
+    .menu-item {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      width: 100%;
+      break-inside: avoid;
+      margin: 0;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      padding: 16px;
+      transition: all 0.4s ease;
+      cursor: pointer;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .menu-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .menu-item:hover {
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+      transform: translateY(-8px) scale(1.02);
+    }
+
+    .menu-item:hover::before {
+      opacity: 1;
+    }
+
+    .menu-item:active {
+      transform: translateY(-4px) scale(1.01);
+    }
+
+    /* รูปในการ์ด */
+    .menu-item img {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      height: auto;
+      object-fit: cover;
+      border-radius: 16px;
+      display: block;
+      transition: all 0.4s ease;
+    }
+
+    .menu-item:hover img {
+      transform: scale(1.08);
+    }
+
+    /* ชื่อสินค้า */
+    .menu-item h3 {
+      margin: 12px 0 0 0;
+      font-size: 13px;
+      font-family: 'Prompt', sans-serif;
+      font-weight: 300;
+      line-height: 1.4;
+      text-align: center;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: calc(1em * 1.4 * 2);
+      color: #333;
+    }
+
+    @media (min-width: 480px) {
+      .menu-item h3 {
+        font-size: 12px;
+      }
+    }
+
+    @media (min-width: 768px) {
+      .menu-item h3 {
+        font-size: 13px;
+      }
+    }
+
+    /* ป้ายราคา */
+    .price-tag {
+      background: linear-gradient(45deg, #7086e8, #716f75);
+      color: #ffffff;
+      font-family: 'Prompt', sans-serif;
+      font-weight: 700;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-top: 12px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .menu-item:hover .price-tag {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Loading state */
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .no-products {
+      text-align: center;
+      padding: 80px 20px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 18px;
+    }
+
+    /* ====== PREVIEW (เดสก์ท็อป hover) ====== */
+    .image-preview {
+      position: absolute;
+      border: 2px solid #fff;
+      background: #fff;
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      display: none;
+      z-index: 1000;
+      pointer-events: none;
+      width: clamp(320px, 40vw, 720px);
+      max-height: 80vh;
+      overflow: hidden;
+    }
+
+    .image-preview img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      display: block;
+      object-fit: contain;
+    }
+
+    /* ====== MODAL ====== */
+    .preview-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.95);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 12px;
+      backdrop-filter: blur(8px);
+      touch-action: none;
+    }
+
+    .zoom-wrap {
+      max-width: min(96vw, 1400px);
+      max-height: 92vh;
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 16px;
+    }
+
+    #zoom-img {
+      max-width: 100%;
+      max-height: 100%;
+      transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(var(--scale, 1));
+      transform-origin: center center;
+      object-fit: contain;
+      border-radius: 16px;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.7);
+      cursor: grab;
+      will-change: transform;
+    }
+
+    #zoom-img.zooming {
+      cursor: grabbing;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: max(16px, env(safe-area-inset-top));
+      right: max(16px, env(safe-area-inset-right));
+      background: rgba(255, 255, 255, 0.95);
+      border: none;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 24px;
+      color: #333;
+      backdrop-filter: blur(12px);
+      transition: all 0.2s ease;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .close-modal:hover {
+      transform: scale(1.05);
+    }
+
+    .close-modal:active {
+      transform: scale(0.95);
+    }
+
+    /* Loading skeleton */
+    .menu-item img[src=""] {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+    }
+
+    @keyframes loading {
+      0% {
+        background-position: 200% 0;
+      }
+
+      100% {
+        background-position: -200% 0;
+      }
+    }
+
+    /* Touch devices */
+    @media (hover: none) and (pointer: coarse) {
+      .menu-item:hover {
+        transform: none;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      }
+
+      .menu-item:active {
+        transform: scale(0.98);
+      }
+    }
+
+    /* จอเล็ก */
+    @media (max-width: 360px) {
+      .menu-grid {
+        padding: 20px 12px;
+        gap: 12px;
+      }
+
+      .menu-item h3 {
+        font-size: 12px;
+        min-height: 42px;
+      }
+
+      .price-tag {
+        font-size: 15px;
+        padding: 10px 14px;
+      }
+    }
+
+    .site-header {
+      display: flex;
+      justify-content: center;
+      /* จัดให้อยู่กึ่งกลางแนวนอน */
+      align-items: center;
+      /* จัดให้อยู่กึ่งกลางแนวตั้ง */
+      gap: 10px;
+      /* ระยะห่างระหว่างโลโก้กับข้อความ */
+      text-align: center;
+    }
+
+    .logo-img {
+      height: 50px;
+      /* ขนาดโลโก้ */
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+
+    <h1 class="site-header">
+      <img src="https://drive.google.com/thumbnail?id=1HGxfThUV4U5VxnmLAngTf5VqICV5ZV1l" alt="Logo" class="logo-img">
+      <n></n>
+      <span>HAVEN SHOPPER STOCK</span>
+    </h1>
+
+
+
+    <div class="category-menu">
+      <button class="category-btn active" data-category="new">🎉 สินค้าเข้าใหม่!</button>
+      <button class="category-btn" data-category="promotion">🔥 โปรโมชั่น ไฟลุก!</button>
+      <button class="category-btn" data-category="common">🔖 สินค้าทั่วไป</button>
+      <button class="category-btn" data-category="gaming">🎮 เกมมิ่งเกียร์</button>
+      <button class="category-btn" data-category="gadget it">📱 ไอที</button>
+      <button class="category-btn" data-category="motorcycle/car parts">🚗 อะไหล่รถ</button>
+      <button class="category-btn" data-category="sport">⚽ กีฬา</button>
+      <button class="category-btn" data-category="music equipment">🎸 ดนตรี</button>
+    </div>
+  </div>
+
+  <div class="menu-grid" id="menu-container">
+    <div class="loading">กำลังโหลดสินค้า...</div>
+  </div>
+
+  <!-- Hover Preview (เดสก์ท็อป) -->
+  <div id="image-preview" class="image-preview"><img src="" alt="Preview"></div>
+
+  <!-- Modal (คลิกแล้วเปิด) -->
+  <div id="preview-modal" class="preview-modal" role="dialog" aria-modal="true">
+    <button class="close-modal" aria-label="ปิด">&times;</button>
+    <div class="zoom-wrap">
+      <img id="zoom-img" src="" alt="Preview Large">
+    </div>
+  </div>
+
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+  <script>
+    /* ============ CONFIG ============ */
+    const SHEET_ID = '164Mfwu89jAz3EyN5QLFt4l0LAmXztFhEiDz997cG9LU';
+    const SHEET_NAME = 'Product';
+
+    // ชื่อหมวดตามปุ่มในหน้า (data-category) → เปรียบเทียบกับค่าจากชีตแบบ lower-case
+    const VALID_CATEGORIES = [
+      'new', 'gaming', 'gadget it', 'music equipment', 'common', 'motorcycle/car parts', 'sport', 'promotion'
+    ];
+
+    // จับคอลัมน์ด้วย "หัวตาราง" ก่อน ถ้าไม่เจอค่อย fallback เป็นตัวอักษรคอลัมน์ (D/K/R/G/P)
+    const HEADER_MAP = {
+      name: ['ชื่อ', 'name', 'product name', 'สินค้า', 'product'],
+      price: ['ราคา', 'price'],
+      image: ['รูป', 'image', 'img', 'ภาพ', 'photo', 'picture', 'รูปภาพ'],
+      stock: ['in stock', 'status', 'สถานะ', 'stock', 'availability', 'available'],
+      category: ['หมวดหมู่', 'category', 'type', 'group', 'หมวด', 'cat']
+    };
+    const FALLBACK_COLUMNS = { name: 'D', price: 'K', image: 'R', stock: 'G', category: 'P' };
+
+    /* ============ STATE ============ */
+    const menuEl = document.getElementById('menu-container');
+    let ALL_ITEMS = [];          // เก็บสินค้าทั้งหมดที่ In Stock
+    let currentCategory = 'new'; // ค่าเริ่มต้น
+
+    /* ============ LOAD JSONP (No CORS) ============ */
+    (function loadViaJSONP() {
+      menuEl.innerHTML = '<p style="text-align:center;padding:40px;color:#666;">กำลังโหลดสินค้า…</p>';
+      const url =
+        `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?` +
+        `sheet=${encodeURIComponent(SHEET_NAME)}` +
+        `&tqx=out:json;responseHandler:__sheet_cb__` +
+        `&tq=${encodeURIComponent('select *')}`;
+      const s = document.createElement('script');
+      s.src = url;
+      s.onerror = () => menuEl.innerHTML =
+        '<p style="text-align:center;padding:40px;color:#c00;">โหลดข้อมูลไม่สำเร็จ (script load error)</p>';
+      document.body.appendChild(s);
+    })();
+
+    /* ============ JSONP CALLBACK ============ */
+    function __sheet_cb__(json) {
+      try {
+        const rows = json.table?.rows || [];
+        ALL_ITEMS = rows.map(r => {
+          const c = r.c || [];
+          return {
+            name: c[3]?.v ?? 'ไม่ระบุชื่อ',
+            price: c[10]?.v ?? 'ไม่ระบุราคา',
+            image: c[17]?.v ?? '',
+            stock: (c[6]?.v ?? '').toString().trim().toLowerCase(),
+            category: (c[15]?.v ?? '').toString().trim().toLowerCase()
+          };
+        }).filter(p => ['in stock', 'instock', 'available'].includes(p.stock));
+
+        renderCategory(currentCategory);
+        bindCategoryMenu();
+        bindPreviewHandlers();
+
+      } catch (err) {
+        console.error(err);
+        menuEl.innerHTML = '<p style="text-align:center;padding:40px;color:#c00;">โหลดข้อมูลไม่สำเร็จ: ' + (err.message || '') + '</p>';
+      }
+    }
+
+
+    /* ============ RENDER ============ */
+    function renderCategory(cat) {
+      const want = norm(cat);
+      let list = ALL_ITEMS;
+
+      // กรองตามหมวด (ถ้าชีตไม่มีคอลัมน์หมวดก็จะเป็นค่าว่าง → โชว์ทั้งหมด)
+      if (VALID_CATEGORIES.includes(want)) {
+        list = ALL_ITEMS.filter(p => (p.category || 'new') === want);
+      }
+
+      if (list.length === 0) {
+        menuEl.innerHTML = '<div class="no-products" style="text-align:center;padding:40px;color:#666;">ไม่มีสินค้าในหมวดนี้</div>';
+        return;
+      }
+
+      menuEl.innerHTML = list.map(p => {
+        const imgUrl = sanitizeDriveImage(p.image); // แปลงลิงก์ Drive → รูปแสดงผล
+        const price = typeof p.price === 'number' ? p.price.toLocaleString('th-TH') : p.price;
+        const name = (p.name || '').trim() || 'ไม่ระบุชื่อ';
+        return `
+        <div class="menu-item">
+          <img src="${imgUrl}" alt="${escapeHtml(name)}" loading="lazy"
+               onerror="this.onerror=null;this.src='';this.style.background='#f3f3f3';">
+          <h3>${escapeHtml(name)}</h3>
+          <div class="price-tag">ราคา : ${escapeHtml(price)} บาท</div>
+        </div>`;
+      }).join('');
+    }
+
+    /* ============ MENU EVENTS ============ */
+    function bindCategoryMenu() {
+      const btns = document.querySelectorAll('.category-btn');
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          btns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          currentCategory = btn.dataset.category || 'new';
+          renderCategory(currentCategory);
+        });
+      });
+    }
+
+    /* ============ PREVIEW & ZOOM (ของเดิม) ============ */
+    function bindPreviewHandlers() {
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+      const modal = document.getElementById('preview-modal');
+      const modalImg = document.getElementById('zoom-img');
+      const closeBtn = modal.querySelector('.close-modal');
+
+      attachZoom(modal);
+
+      function openModalWith(src) {
+        if (!src) return;
+        modalImg.src = src;
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        modal.dispatchEvent(new Event('show-zoom'));
+      }
+      function closeModal() {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+      closeBtn.addEventListener('click', (e) => { e.stopPropagation(); closeModal(); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.style.display === 'flex') closeModal(); });
+
+      document.getElementById('menu-container').addEventListener('click', (e) => {
+        const img = e.target.closest('.menu-item img');
+        if (!img) return;
+        e.preventDefault(); e.stopPropagation();
+        openModalWith(img.getAttribute('src'));
+      });
+
+      if (!isTouch) {
+        const preview = document.getElementById('image-preview');
+        let moveHandler = null;
+
+        document.addEventListener('mouseover', function (e) {
+          if (e.target.tagName === 'IMG' && e.target.closest('.menu-item')) {
+            const src = e.target.getAttribute('src');
+            if (src) {
+              preview.style.display = 'block';
+              preview.querySelector('img').src = src;
+
+              moveHandler = (ev) => {
+                const offset = 20;
+                const rect = preview.getBoundingClientRect();
+                const ww = window.innerWidth, wh = window.innerHeight;
+                let left = ev.pageX + offset, top = ev.pageY + offset;
+                if (left + rect.width > ww) left = ev.pageX - rect.width - offset;
+                if (top + rect.height > wh) top = ev.pageY - rect.height - offset;
+                preview.style.left = left + 'px';
+                preview.style.top = top + 'px';
+              };
+              document.addEventListener('mousemove', moveHandler);
+            }
+          } else {
+            preview.style.display = 'none';
+            if (moveHandler) { document.removeEventListener('mousemove', moveHandler); moveHandler = null; }
+          }
+        });
+      }
+    }
+
+    function attachZoom(modal) {
+      const wrap = modal.querySelector('.zoom-wrap');
+      const img = modal.querySelector('#zoom-img');
+
+      const state = {
+        scale: 1, tx: 0, ty: 0, minScale: 1, maxScale: 4,
+        startX: 0, startY: 0, startTx: 0, startTy: 0, isPanning: false, lastTap: 0
+      };
+
+      function apply() {
+        img.style.setProperty('--scale', state.scale);
+        img.style.setProperty('--tx', state.tx + 'px'); img.style.setProperty('--ty', state.ty + 'px');
+      }
+      function clampPan() {
+        const prevScale = state.scale, prevTx = state.tx, prevTy = state.ty;
+        img.style.setProperty('--scale', 1); img.style.setProperty('--tx', '0px'); img.style.setProperty('--ty', '0px');
+        const baseRect = img.getBoundingClientRect();
+        img.style.setProperty('--scale', prevScale); img.style.setProperty('--tx', prevTx + 'px'); img.style.setProperty('--ty', prevTy + 'px');
+        const contW = wrap.clientWidth, contH = wrap.clientHeight;
+        const curW = baseRect.width * state.scale, curH = baseRect.height * state.scale;
+        const maxX = Math.max(0, (curW - contW) / 2), maxY = Math.max(0, (curH - contH) / 2);
+        state.tx = Math.min(maxX, Math.max(-maxX, state.tx));
+        state.ty = Math.min(maxY, Math.max(-maxY, state.ty));
+      }
+      function setScale(val) { state.scale = Math.min(state.maxScale, Math.max(state.minScale, val)); clampPan(); apply(); }
+      function resetView() { state.scale = 1; state.tx = 0; state.ty = 0; apply(); }
+
+      img.addEventListener('mousedown', (e) => {
+        if (state.scale <= 1) return;
+        state.isPanning = true; state.startX = e.clientX; state.startY = e.clientY; state.startTx = state.tx; state.startTy = state.ty; img.classList.add('zooming');
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (!state.isPanning) return;
+        state.tx = state.startTx + (e.clientX - state.startX); state.ty = state.startTy + (e.clientY - state.startY); clampPan(); apply();
+      });
+      window.addEventListener('mouseup', () => { state.isPanning = false; img.classList.remove('zooming'); });
+
+      wrap.addEventListener('wheel', (e) => { e.preventDefault(); const d = -Math.sign(e.deltaY) * 0.2; setScale(state.scale + d); }, { passive: false });
+      img.addEventListener('dblclick', () => { (state.scale === 1) ? setScale(2.5) : resetView(); });
+
+      let tDist = 0, tScale = 1;
+      const dist = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+      wrap.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          const t = e.touches[0];
+          state.isPanning = state.scale > 1; state.startX = t.clientX; state.startY = t.clientY; state.startTx = state.tx; state.startTy = state.ty;
+          const now = Date.now(); if (now - state.lastTap < 300) { (state.scale === 1) ? setScale(2.5) : resetView(); } state.lastTap = now;
+        } else if (e.touches.length === 2) { tDist = dist(e.touches[0], e.touches[1]); tScale = state.scale; state.isPanning = false; }
+      }, { passive: true });
+      wrap.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1 && state.scale > 1 && state.isPanning) {
+          const t = e.touches[0];
+          state.tx = state.startTx + (t.clientX - state.startX); state.ty = state.startTy + (t.clientY - state.startY); clampPan(); apply();
+        } else if (e.touches.length === 2) { e.preventDefault(); const d = dist(e.touches[0], e.touches[1]); setScale(tScale * (d / (tDist || d))); }
+      }, { passive: false });
+      modal.addEventListener('show-zoom', () => { resetView(); setTimeout(() => { clampPan(); apply(); }, 0); });
+    }
+
+    /* ============ HELPERS ============ */
+    function norm(s) { return (s || '').toString().trim().toLowerCase(); }
+
+    function findColIndex(cols, names) {
+      if (!names?.length) return -1;
+      const want = names.map(norm);
+      for (let i = 0; i < cols.length; i++) {
+        const raw = (cols[i]?.label || cols[i]?.id || '');
+        const label = norm(raw);
+        if (want.includes(label)) return i;
+        const stripped = label.replace(/\s*\(.*?\)\s*/g, '');
+        if (want.includes(stripped)) return i;
+      }
+      return -1;
+    }
+    function colLetterToIndex(letter) {
+      if (!letter) return -1;
+      const s = letter.toString().trim().toUpperCase();
+      let n = 0; for (let i = 0; i < s.length; i++) { const code = s.charCodeAt(i); if (code < 65 || code > 90) return -1; n = n * 26 + (code - 64); }
+      return n - 1; // 0-based
+    }
+    // รองรับลิงก์ Drive หลายแบบ → เปลี่ยนเป็นรูปแสดงผลได้
+    function sanitizeDriveImage(url) {
+      const u = (url || '').toString().trim();
+      if (!u) return '';
+      // /file/d/<ID>/view
+      let m = u.match(/\/d\/([a-zA-Z0-9_-]{10,})\//);
+      if (m) return `https://lh3.googleusercontent.com/d/${m[1]}=w1600`;
+      // ?id=<ID> หรือ open?id=<ID>
+      m = u.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
+      if (m) return `https://lh3.googleusercontent.com/d/${m[1]}=w1600`;
+      // ถ้าเป็น uc?export=view&id=<ID>
+      m = u.match(/uc\?export=view&(?:amp;)?id=([a-zA-Z0-9_-]{10,})/);
+      if (m) return `https://lh3.googleusercontent.com/d/${m[1]}=w1600`;
+      return u; // ถ้าเป็นรูปตรงๆ อยู่แล้ว
+    }
+    function escapeHtml(s) {
+      return (s ?? '').toString()
+        .replaceAll('&', '&amp;').replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;').replaceAll('"', '&quot;')
+        .replaceAll("'", "&#39;");
+    }
+  </script>
+
+
+</body>
+
+</html>
