@@ -38,7 +38,61 @@
       top: 0;
       z-index: 100;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      transition: transform .25s ease, padding .25s ease, box-shadow .25s ease;
+      will-change: transform, padding;
     }
+
+
+
+    /* ย่อขนาดเวลาเลื่อน (ทั้งมือถือ/เดสก์ท็อปก็ได้) */
+    .header.compact {
+      padding: 6px 0;
+      /* จาก 15px → 6px */
+      box-shadow: 0 2px 12px rgba(0, 0, 0, .08);
+    }
+
+    .header.compact .header h1,
+    /* กัน CSS specificity ซ้อน */
+    .header.compact h1 {
+      font-size: 1.4rem;
+      /* ย่อหัวข้อ */
+    }
+
+    .header.compact .logo-img {
+      height: 28px;
+      /* ย่อโลโก้ */
+    }
+
+    /* ซ่อนหัวทั้งบาร์ ตอนเลื่อนลง */
+    .header.hide {
+      transform: translateY(-100%);
+    }
+
+    /* มือถือ: คุมเมนูให้เตี้ยลงและเลื่อนข้างๆ ได้ */
+    @media (max-width: 768px) {
+      .category-menu {
+        gap: 8px;
+        padding: 0 12px;
+        overflow-x: auto;
+        /* เลื่อนแนวนอนได้ */
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+
+      .category-menu::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+
+
+
+
+
+
+
+
+
 
     .header h1 {
       text-align: center;
@@ -744,6 +798,47 @@
         .replaceAll('>', '&gt;').replaceAll('"', '&quot;')
         .replaceAll("'", "&#39;");
     }
+
+
+
+    // ===== Smart Header (auto hide/show + compact) =====
+    (function smartHeader() {
+      const header = document.querySelector('.header');
+      if (!header) return;
+
+      let lastY = window.scrollY || 0;
+      let ticking = false;
+
+      function onScroll() {
+        const y = window.scrollY || 0;
+
+        // ย่อหัวถ้าลงจากบนสุดนิดหน่อย
+        if (y > 10) {
+          header.classList.add('compact');
+        } else {
+          header.classList.remove('compact');
+        }
+
+        // ถ้าเลื่อน "ลง" และพ้น threshold → ซ่อน
+        if (y > lastY && y > 80) {
+          header.classList.add('hide');
+        } else {
+          // เลื่อนขึ้น → โชว์
+          header.classList.remove('hide');
+        }
+
+        lastY = y;
+        ticking = false;
+      }
+
+      window.addEventListener('scroll', () => {
+        if (!ticking) {
+          window.requestAnimationFrame(onScroll);
+          ticking = true;
+        }
+      }, { passive: true });
+    })();
+
   </script>
 
 
