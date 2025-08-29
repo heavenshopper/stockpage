@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HAVEN SHOPPER</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <!-- External CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Contact Overlay -->
+  <div class="contact-overlay" id="contactOverlay"></div>
+
+  <!-- Contact Menu -->
+  <div class="contact-menu" id="contactMenu">
+    <div class="menu-arrow"></div>
+    <div class="menu-header">
+      <h3>ช่องทางติดต่อ</h3>
+      <p>เลือกช่องทางที่สะดวกสำหรับคุณ</p>
+    </div>
+    <div class="contact-list">
+      <a href="#" class="contact-item messenger" onclick="openMessenger(event)">
+        <div class="contact-icon"><i class="fab fa-facebook-messenger"></i></div>
+        <div class="contact-info">
+          <div class="contact-title">Facebook Messenger</div>
+          <div class="contact-subtitle">ส่งข้อความหาเราผ่าน Messenger</div>
+        </div>
+      </a>
+      <a href="#" class="contact-item line" onclick="openLine(event)">
+        <div class="contact-icon"><i class="fab fa-line"></i></div>
+        <div class="contact-info">
+          <div class="contact-title">LINE Account</div>
+          <div class="contact-subtitle">แชทผ่าน LINE Official Account</div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Floating Action Button -->
+  <button class="fab-main" id="fabMain" onclick="toggleContactMenu()">
+    <i class="fas fa-comment" id="fabIcon"></i>
+  </button>
+
+  <!-- Header -->
+  <div class="header">
+    <h1 class="site-header">
+      <img src="https://drive.google.com/thumbnail?id=1HGxfThUV4U5VxnmLAngTf5VqICV5ZV1l" alt="Logo" class="logo-img">
+      <span>HAVEN SHOPPER STOCK</span>
+    </h1>
+    <div class="category-menu">
+      <button class="category-btn active" data-category="new">🎉 สินค้าเข้าใหม่!</button>
+      <button class="category-btn" data-category="promotion">🔥 โปรโมชั่น ไฟลุก!</button>
+      <button class="category-btn" data-category="common">🔖 สินค้าทั่วไป</button>
+      <button class="category-btn" data-category="gaming">🎮 เกมมิ่งเกียร์</button>
+      <button class="category-btn" data-category="gadget it">📱 ไอที</button>
+      <button class="category-btn" data-category="motorcycle/car parts">🚗 อะไหล่รถ</button>
+      <button class="category-btn" data-category="sport">⚽ กีฬา</button>
+      <button class="category-btn" data-category="music equipment">🎸 ดนตรี</button>
+    </div>
+  </div>
+
+  <!-- Product Grid -->
+  <div class="menu-grid" id="menu-container">
+    <div class="loading">กำลังโหลดสินค้า...</div>
+  </div>
+
+  <!-- Hover Preview -->
+  <div id="image-preview" class="image-preview"><img src="" alt="Preview"></div>
+
+  <!-- Modal -->
+  <div id="preview-modal" class="preview-modal" role="dialog" aria-modal="true">
+    <button class="close-modal" aria-label="ปิด">&times;</button>
+    <div class="zoom-wrap"><img id="zoom-img" src="" alt="Preview Large"></div>
+  </div>
+
+  <!-- Google Charts Loader (needed by gviz JSONP) -->
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <!-- External JS -->
+  <script src="script.js"></script>
+</body>
+</html>
