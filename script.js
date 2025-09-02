@@ -110,7 +110,7 @@ function renderCategory(cat) {
         <img src="${imgUrl}" alt="${escapeHtml(name)}" loading="lazy"
              onerror="this.onerror=null;this.src='';this.style.background='#f3f3f3';">
         <h3>${escapeHtml(name)}</h3>
-        <div class="price-tag">ราคาสินค้า : ${escapeHtml(price)} บาท</div>
+        <div class="price-tag">ราคา : ${escapeHtml(price)} บาท</div>
       </div>`;
   }).join('');
 }
