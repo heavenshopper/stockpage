@@ -18,7 +18,7 @@ function toggleContactMenu() {
     icon.className = 'fas fa-comment';
   }
 }
-document.getElementById('contactOverlay').addEventListener('click', function () {
+document.getElementById('contactOverlay')?.addEventListener('click', function () {
   if (isMenuOpen) toggleContactMenu();
 });
 function openMessenger(event) {
@@ -34,7 +34,6 @@ function openLine(event) {
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape' && isMenuOpen) toggleContactMenu();
 });
-// Gentle pulse hint for FAB
 setInterval(() => {
   if (!isMenuOpen) {
     const fab = document.getElementById('fabMain');
@@ -45,24 +44,17 @@ setInterval(() => {
 // ===== Google Sheet config & data load (via JSONP to avoid CORS) =====
 const SHEET_ID = '1T1ls-VUXfvBRAE4vOt5-b94POeZpG83jS4-SIqiN09U';
 const SHEET_NAME = 'Product';
-const VALID_CATEGORIES = [
-  'new', 'gaming', 'gadget it', 'music equipment', 'common', 'motorcycle/car parts', 'sport', 'promotion'
-];
+const VALID_CATEGORIES = ['new','gaming','gadget it','music equipment','common','motorcycle/car parts','sport','promotion'];
 const menuEl = document.getElementById('menu-container');
 let ALL_ITEMS = [];
 let currentCategory = 'new';
 
 (function loadViaJSONP() {
-  menuEl.innerHTML = '<p style="text-align:center;padding:40px;color:#666;">กำลังโหลดสินค้า…</p>';
-  const url =
-    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?` +
-    `sheet=${encodeURIComponent(SHEET_NAME)}` +
-    `&tqx=out:json;responseHandler:__sheet_cb__` +
-    `&tq=${encodeURIComponent('select *')}`;
+  if (menuEl) menuEl.innerHTML = '<p style="text-align:center;padding:40px;color:#666;">กำลังโหลดสินค้า…</p>';
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}&tqx=out:json;responseHandler:__sheet_cb__&tq=${encodeURIComponent('select *')}`;
   const s = document.createElement('script');
   s.src = url;
-  s.onerror = () => menuEl.innerHTML =
-    '<p style="text-align:center;padding:40px;color:#c00;">โหลดข้อมูลไม่สำเร็จ (script load error)</p>';
+  s.onerror = () => { if (menuEl) menuEl.innerHTML = '<p style="text-align:center;padding:40px;color:#c00;">โหลดข้อมูลไม่สำเร็จ (script load error)</p>'; };
   document.body.appendChild(s);
 })();
 
@@ -70,23 +62,24 @@ let currentCategory = 'new';
 function __sheet_cb__(json) {
   try {
     const rows = json.table?.rows || [];
-    ALL_ITEMS = rows.map(r => {
+    ALL_ITEMS = rows.map((r, i) => {
       const c = r.c || [];
       return {
         name: c[3]?.v ?? 'ไม่ระบุชื่อ',
         price: c[10]?.v ?? 'ไม่ระบุราคา',
         image: c[17]?.v ?? '',
         stock: (c[6]?.v ?? '').toString().trim().toLowerCase(),
-        category: (c[15]?.v ?? '').toString().trim().toLowerCase()
+        category: (c[15]?.v ?? '').toString().trim().toLowerCase(),
+        _rowIndex: i
       };
-    }).filter(p => ['in stock', 'instock', 'available'].includes(p.stock));
+    }).filter(p => ['in stock','instock','available'].includes(p.stock));
 
     renderCategory(currentCategory);
     bindCategoryMenu();
     bindPreviewHandlers();
   } catch (err) {
     console.error(err);
-    menuEl.innerHTML = '<p style="text-align:center;padding:40px;color:#c00;">โหลดข้อมูลไม่สำเร็จ: ' + (err.message || '') + '</p>';
+    if (menuEl) menuEl.innerHTML = '<p style="text-align:center;padding:40px;color:#c00;">โหลดข้อมูลไม่สำเร็จ: ' + (err.message || '') + '</p>';
   }
 }
 
@@ -97,10 +90,14 @@ function renderCategory(cat) {
   if (VALID_CATEGORIES.includes(want)) {
     list = ALL_ITEMS.filter(p => (p.category || 'new') === want);
   }
-  if (list.length === 0) {
-    menuEl.innerHTML = '<div class="no-products" style="text-align:center;padding:40px;color:#666;">ไม่มีสินค้าในหมวดนี้</div>';
+  // ใหม่อยู่บน
+  list = list.slice().sort((a,b) => (b._rowIndex ?? 0) - (a._rowIndex ?? 0));
+
+  if (!list.length) {
+    if (menuEl) menuEl.innerHTML = '<div class="no-products" style="text-align:center;padding:40px;color:#666;">ไม่มีสินค้าในหมวดนี้</div>';
     return;
   }
+  if (!menuEl) return;
   menuEl.innerHTML = list.map(p => {
     const imgUrl = sanitizeDriveImage(p.image);
     const price = typeof p.price === 'number' ? p.price.toLocaleString('th-TH') : p.price;
@@ -133,8 +130,8 @@ function bindPreviewHandlers() {
   const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   const modal = document.getElementById('preview-modal');
   const modalImg = document.getElementById('zoom-img');
-  const closeBtn = modal.querySelector('.close-modal');
-
+  const closeBtn = modal?.querySelector('.close-modal');
+  if (!modal || !modalImg || !closeBtn) return;
   attachZoom(modal);
 
   function openModalWith(src) {
@@ -152,8 +149,8 @@ function bindPreviewHandlers() {
   closeBtn.addEventListener('click', (e) => { e.stopPropagation(); closeModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.style.display === 'flex') closeModal(); });
 
-  document.getElementById('menu-container').addEventListener('click', (e) => {
-    const img = e.target.closest('.menu-item img');
+  document.getElementById('menu-container')?.addEventListener('click', (e) => {
+    const img = e.target.closest?.('.menu-item img');
     if (!img) return;
     e.preventDefault(); e.stopPropagation();
     openModalWith(img.getAttribute('src'));
@@ -191,15 +188,8 @@ function bindPreviewHandlers() {
 function attachZoom(modal) {
   const wrap = modal.querySelector('.zoom-wrap');
   const img = modal.querySelector('#zoom-img');
-  const state = {
-    scale: 1, tx: 0, ty: 0, minScale: 1, maxScale: 4,
-    startX: 0, startY: 0, startTx: 0, startTy: 0, isPanning: false, lastTap: 0
-  };
-  function apply() {
-    img.style.setProperty('--scale', state.scale);
-    img.style.setProperty('--tx', state.tx + 'px');
-    img.style.setProperty('--ty', state.ty + 'px');
-  }
+  const state = { scale: 1, tx: 0, ty: 0, minScale: 1, maxScale: 4, startX: 0, startY: 0, startTx: 0, startTy: 0, isPanning: false, lastTap: 0 };
+  function apply() { img.style.setProperty('--scale', state.scale); img.style.setProperty('--tx', state.tx + 'px'); img.style.setProperty('--ty', state.ty + 'px'); }
   function clampPan() {
     const prevScale = state.scale, prevTx = state.tx, prevTy = state.ty;
     img.style.setProperty('--scale', 1); img.style.setProperty('--tx', '0px'); img.style.setProperty('--ty', '0px');
@@ -237,11 +227,15 @@ function attachZoom(modal) {
   wrap.addEventListener('touchstart', (e) => {
     if (e.touches.length === 1) {
       const t = e.touches[0];
-      state.isPanning = state.scale > 1; state.startX = t.clientX; state.startY = t.clientY; state.startTx = state.tx; state.startTy = state.ty;
+      state.isPanning = state.scale > 1;
+      state.startX = t.clientX; state.startY = t.clientY;
+      state.startTx = state.tx; state.startTy = state.ty;
       const now = Date.now();
       if (now - state.lastTap < 300) { (state.scale === 1) ? setScale(2.5) : resetView(); }
       state.lastTap = now;
-    } else if (e.touches.length === 2) { tDist = dist(e.touches[0], e.touches[1]); tScale = state.scale; state.isPanning = false; }
+    } else if (e.touches.length === 2) {
+      tDist = dist(e.touches[0], e.touches[1]); tScale = state.scale; state.isPanning = false;
+    }
   }, { passive: true });
   wrap.addEventListener('touchmove', (e) => {
     if (e.touches.length === 1 && state.scale > 1 && state.isPanning) {
@@ -258,7 +252,7 @@ function attachZoom(modal) {
   modal.addEventListener('show-zoom', () => { resetView(); setTimeout(() => { clampPan(); apply(); }, 0); });
 }
 
-// ===== Helpers =====
+// Helpers
 function norm(s) { return (s || '').toString().trim().toLowerCase(); }
 function sanitizeDriveImage(url) {
   const u = (url || '').toString().trim();
@@ -278,7 +272,7 @@ function escapeHtml(s) {
     .replaceAll("'","&#39;");
 }
 
-// ===== Smart header (auto hide/show + compact) =====
+// Smart header
 (function smartHeader() {
   const header = document.querySelector('.header');
   if (!header) return;
