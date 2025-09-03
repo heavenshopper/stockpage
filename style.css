@@ -707,10 +707,45 @@ iframe {
   pointer-events: none !important;
 }
 
+/* ===========================
+   Mobile Grid Overrides
+   - แนวตั้ง: 3 คอลัมน์
+   - แนวนอน: 4 คอลัมน์
+   - หน้าจอเล็กมาก: 2 คอลัมน์
+   =========================== */
 
-/* ==== COMPACT GRID FOR MOBILE ==== */
-/* มือถือส่วนใหญ่ (~360–430px): 3 คอลัมน์ */
-@media (max-width: 480px) {
+/* จอเล็กมาก (เช่น 320–359px): 2 คอลัมน์ ให้ยังพออ่านได้ */
+@media (max-width: 359px) {
+  .menu-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    padding: 12px 8px !important;
+  }
+
+  .menu-item {
+    padding: 8px !important;
+    border-radius: 12px !important;
+  }
+
+  .menu-item img {
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 10px !important;
+  }
+
+  .menu-item h3 {
+    font-size: 11px !important;
+    margin-top: 6px !important;
+  }
+
+  .price-tag {
+    font-size: 12px !important;
+    padding: 7px 8px !important;
+    margin-top: 6px !important;
+  }
+}
+
+/* มือถือแนวตั้ง (<= 767px): 2 คอลัมน์ */
+@media (max-width: 767px) and (orientation: portrait) {
   .menu-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 10px !important;
@@ -724,7 +759,6 @@ iframe {
 
   .menu-item img {
     aspect-ratio: 1 / 1 !important;
-    /* ทำสี่เหลี่ยมจัตุรัส จะวางกริดได้แน่นขึ้น */
     border-radius: 10px !important;
   }
 
@@ -742,19 +776,36 @@ iframe {
   }
 }
 
-/* จอมือถือกว้าง/แท็บเล็ตเล็กแนวตั้ง (~480–640px): 4 คอลัมน์ */
-@media (min-width: 481px) and (max-width: 640px) {
+/* มือถือ/แท็บเล็ตเล็ก "แนวนอน" ส่วนใหญ่ (เช่น iPhone แนวนอน ~844px)
+   บังคับ 4 คอลัมน์ในช่วง 768–1023px เพื่อทับกฎเดิมที่ตั้งไว้ 3 คอลัมน์ */
+@media (min-width: 768px) and (max-width: 1023px) {
   .menu-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
     gap: 12px !important;
     padding: 18px 12px !important;
   }
 
+  .menu-item {
+    padding: 10px !important;
+    border-radius: 14px !important;
+  }
+
+  .menu-item img {
+    aspect-ratio: 1 / 1 !important;
+    /* ทำรูปเป็นสี่เหลี่ยม จะจัด 4 คอลัมน์ได้สวย */
+    border-radius: 10px !important;
+  }
+
   .menu-item h3 {
     font-size: 12px !important;
+    -webkit-line-clamp: 2;
+    min-height: calc(1em * 1.35 * 2);
+    margin-top: 8px !important;
   }
 
   .price-tag {
     font-size: 13.5px !important;
+    padding: 8px 10px !important;
+    margin-top: 8px !important;
   }
 }
