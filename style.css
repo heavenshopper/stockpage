@@ -813,3 +813,23 @@ iframe {
     margin-top: 8px !important;
   }
 }
+
+
+
+
+/* ===== PATCH: Instant fold header (no transform animation on sticky) ===== */
+.header {
+  transition: padding .25s ease, box-shadow .25s ease !important;
+  will-change: padding !important;
+  contain: layout paint !important;
+}
+
+.header .header-inner {
+  transition: none !important;
+}
+
+.header.hide .header-inner {
+  transform: translateY(-100%) !important;
+}
+
+.header h1 { margin-bottom: 12px !important; }
