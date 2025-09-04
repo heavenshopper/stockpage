@@ -28,6 +28,7 @@ function openMessenger(event) {
 }
 function openLine(event) {
   event.preventDefault();
+
   window.open('https://line.me/R/ti/p/sreenoomhihi', '_blank');
   toggleContactMenu();
 }
@@ -44,7 +45,7 @@ setInterval(() => {
 // ===== Google Sheet config & data load (via JSONP to avoid CORS) =====
 const SHEET_ID = '1T1ls-VUXfvBRAE4vOt5-b94POeZpG83jS4-SIqiN09U';
 const SHEET_NAME = 'Product';
-const VALID_CATEGORIES = ['new','gaming','gadget it','music equipment','common','motorcycle/car parts','sport','promotion'];
+const VALID_CATEGORIES = ['new', 'gaming', 'gadget it', 'music equipment', 'common', 'motorcycle/car parts', 'sport', 'promotion'];
 const menuEl = document.getElementById('menu-container');
 let ALL_ITEMS = [];
 let currentCategory = 'new';
@@ -72,7 +73,7 @@ function __sheet_cb__(json) {
         category: (c[15]?.v ?? '').toString().trim().toLowerCase(),
         _rowIndex: i
       };
-    }).filter(p => ['in stock','instock','available'].includes(p.stock));
+    }).filter(p => ['in stock', 'instock', 'available'].includes(p.stock));
 
     renderCategory(currentCategory);
     bindCategoryMenu();
@@ -91,7 +92,7 @@ function renderCategory(cat) {
     list = ALL_ITEMS.filter(p => (p.category || 'new') === want);
   }
   // ใหม่อยู่บน
-  list = list.slice().sort((a,b) => (b._rowIndex ?? 0) - (a._rowIndex ?? 0));
+  list = list.slice().sort((a, b) => (b._rowIndex ?? 0) - (a._rowIndex ?? 0));
 
   if (!list.length) {
     if (menuEl) menuEl.innerHTML = '<div class="no-products" style="text-align:center;padding:40px;color:#666;">ไม่มีสินค้าในหมวดนี้</div>';
@@ -267,24 +268,40 @@ function sanitizeDriveImage(url) {
 }
 function escapeHtml(s) {
   return (s ?? '').toString()
-    .replaceAll('&','&amp;').replaceAll('<','&lt;')
-    .replaceAll('>','&gt;').replaceAll('"','&quot;')
-    .replaceAll("'","&#39;");
+    .replaceAll('&', '&amp;').replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;').replaceAll('"', '&quot;')
+    .replaceAll("'", "&#39;");
 }
 
 // Smart header
 (function smartHeader() {
   const header = document.querySelector('.header');
   if (!header) return;
+
   let lastY = window.scrollY || 0;
-  let ticking = false;
+  const SHOW_AT_TOP_PX = 24;    // near top -> always show
+  const THRESH = 2;             // small deadzone to reduce jitter on tiny scrolls
+
   function onScroll() {
     const y = window.scrollY || 0;
-    if (y > 10) header.classList.add('compact'); else header.classList.remove('compact');
-    if (y > lastY && y > 80) header.classList.add('hide'); else header.classList.remove('hide');
-    lastY = y; ticking = false;
+
+    // Always show when near the very top
+    if (y <= SHOW_AT_TOP_PX) {
+      header.classList.remove('hide');
+      lastY = y;
+      return;
+    }
+
+    // Determine direction with small threshold
+    if (y > lastY + THRESH) {
+      // Scrolling down -> hide instantly
+      header.classList.add('hide');
+    } else if (y < lastY - THRESH) {
+      // Scrolling up -> show instantly
+      header.classList.remove('hide');
+    }
+    lastY = y;
   }
-  window.addEventListener('scroll', () => {
-    if (!ticking) { window.requestAnimationFrame(onScroll); ticking = true; }
-  }, { passive: true });
+
+  window.addEventListener('scroll', onScroll, { passive: true });
 })();
