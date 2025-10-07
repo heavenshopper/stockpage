@@ -67,7 +67,15 @@ function __sheet_cb__(json) {
       const c = r.c || [];
       return {
         name: c[3]?.v ?? 'ไม่ระบุชื่อ',
-        price: c[10]?.v ?? 'ไม่ระบุราคา',
+        price: (
+          c[10]?.v === null ||
+          c[10]?.v === undefined ||
+          c[10]?.v === '' ||
+          c[10]?.v === 0 ||
+          c[10]?.v === '0'
+        )
+          ? ' ขอคิดก่อนนะว่ากี่ '
+          : c[10]?.v,
         image: c[17]?.v ?? '',
         stock: (c[6]?.v ?? '').toString().trim().toLowerCase(),
         category: (c[15]?.v ?? '').toString().trim().toLowerCase(),
