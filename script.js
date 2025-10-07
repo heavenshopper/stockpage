@@ -74,7 +74,7 @@ function __sheet_cb__(json) {
           c[10]?.v === 0 ||
           c[10]?.v === '0'
         )
-          ? ' ขอคิดก่อนนะว่ากี่ '
+          ? ' ขอคิดก่อนนะว่ากี่'
           : c[10]?.v,
         image: c[17]?.v ?? '',
         stock: (c[6]?.v ?? '').toString().trim().toLowerCase(),
