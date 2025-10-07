@@ -74,7 +74,7 @@ function __sheet_cb__(json) {
           c[10]?.v === 0 ||
           c[10]?.v === '0'
         )
-          ? ' ขอคิดก่อนนะว่ากี่'
+          ? ' ยังไม่ระบุราคา'
           : c[10]?.v,
         image: c[17]?.v ?? '',
         stock: (c[6]?.v ?? '').toString().trim().toLowerCase(),
@@ -103,7 +103,7 @@ function renderCategory(cat) {
   list = list.slice().sort((a, b) => (b._rowIndex ?? 0) - (a._rowIndex ?? 0));
 
   if (!list.length) {
-    if (menuEl) menuEl.innerHTML = '<div class="no-products" style="text-align:center;padding:40px;color:#666;">ไม่มีสินค้าในหมวดนี้</div>';
+    if (menuEl) menuEl.innerHTML = '<div class="no-products" style="text-align:center;padding:40px;color:#666;">สินค้ารออัพเดต</div>';
     return;
   }
   if (!menuEl) return;
