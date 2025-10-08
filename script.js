@@ -65,32 +65,40 @@ function __sheet_cb__(json) {
     const rows = json.table?.rows || [];
     ALL_ITEMS = rows.map((r, i) => {
       const c = r.c || [];
+      if (i === 0) console.log('Row sample:', c.map(x => x?.v)); // ✅ อยู่ข้างใน map
       return {
         name: c[3]?.v ?? 'ไม่ระบุชื่อ',
-        price: (
-          c[10]?.v === null ||
-          c[10]?.v === undefined ||
-          c[10]?.v === '' ||
-          c[10]?.v === 0 ||
-          c[10]?.v === '0'
-        )
-          ? ' ยังไม่ระบุราคา'
-          : c[10]?.v,
+        price:
+          (c[10]?.v === null ||
+            c[10]?.v === undefined ||
+            c[10]?.v === '' ||
+            c[10]?.v === 0 ||
+            c[10]?.v === '0')
+            ? ' ยังไม่ระบุราคา'
+            : c[10]?.v,
         image: c[17]?.v ?? '',
         stock: (c[6]?.v ?? '').toString().trim().toLowerCase(),
         category: (c[15]?.v ?? '').toString().trim().toLowerCase(),
+        shopeeLink: (c.length > 18 ? c[18]?.v : '') ?? '',// ✅ ลิงก์ Shopee (คอลัมน์ S)
         _rowIndex: i
       };
-    }).filter(p => ['in stock', 'instock', 'available'].includes(p.stock));
+    }).filter(p =>
+      ['in stock', 'instock', 'available'].includes(p.stock)
+    );
 
     renderCategory(currentCategory);
     bindCategoryMenu();
     bindPreviewHandlers();
   } catch (err) {
     console.error(err);
-    if (menuEl) menuEl.innerHTML = '<p style="text-align:center;padding:40px;color:#c00;">โหลดข้อมูลไม่สำเร็จ: ' + (err.message || '') + '</p>';
+    if (menuEl)
+      menuEl.innerHTML =
+        '<p style="text-align:center;padding:40px;color:#c00;">โหลดข้อมูลไม่สำเร็จ: ' +
+        (err.message || '') +
+        '</p>';
   }
 }
+
 
 // ===== Rendering =====
 function renderCategory(cat) {
@@ -117,6 +125,7 @@ function renderCategory(cat) {
              onerror="this.onerror=null;this.src='';this.style.background='#f3f3f3';">
         <h3>${escapeHtml(name)}</h3>
         <div class="price-tag">ราคา : ${escapeHtml(price)} บาท</div>
+        ${p.shopeeLink ? `<a href="${p.shopeeLink}" target="_blank" class="compare-btn">เปรียบเทียบราคา</a>` : ""}
       </div>`;
   }).join('');
 }
