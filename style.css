@@ -132,14 +132,16 @@ body {
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
-  padding: 15px 15px;
-  max-width: 1200px;
+  padding: 15px;
+  width: 90vw;             /* ใช้ความกว้างของ viewport 95% */
+  max-width: none;         /* ยกเลิกการล็อกความกว้าง */
   margin: 0 auto;
   background: rgba(243, 223, 223, 0.1);
   border-radius: 20px;
   margin-top: 20px;
   backdrop-filter: blur(5px);
 }
+
 
 @media (min-width: 480px) {
   .menu-grid {
@@ -157,6 +159,7 @@ body {
   }
 }
 
+
 @media (min-width: 1024px) {
   .menu-grid {
     grid-template-columns: repeat(4, 1fr);
@@ -165,9 +168,10 @@ body {
   }
 }
 
-@media (min-width: 1280px) {
+/*จอคอม grid-template-columns: repeat(6, 1fr);  */
+@media (min-width: 1280px) { 
   .menu-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(6, 1fr);
   }
 }
 
@@ -254,6 +258,8 @@ body {
     font-size: 13px;
   }
 }
+
+
 
 .price-tag {
   background: linear-gradient(45deg, #7086e8, #716f75);
@@ -418,6 +424,8 @@ body {
   .menu-grid {
     padding: 20px 12px;
     gap: 12px;
+
+  
   }
 
   .menu-item h3 {
