@@ -833,3 +833,26 @@ iframe {
 }
 
 .header h1 { margin-bottom: 12px !important; }
+
+
+/* ===== ปุ่มเปรียบเทียบราคา ===== */
+.compare-btn {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 10px 16px;
+  background: linear-gradient(45deg, #3498db, #1abc9c);
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+  border-radius: 10px;
+  text-decoration: none;
+  text-align: center;
+  transition: 0.25s;
+  
+}
+
+.compare-btn:hover {
+  background: linear-gradient(45deg, #1abc9c, #16a085);
+  box-shadow: 0 6px 14px rgba(105, 94, 78, 0.4);
+  transform: translateY(-2px);
+}
