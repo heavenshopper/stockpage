@@ -174,6 +174,8 @@ function bindPreviewHandlers() {
     openModalWith(img.getAttribute('src'));
   });
 
+  /*
+  
   if (!isTouch) {
     const preview = document.getElementById('image-preview');
     let moveHandler = null;
@@ -201,8 +203,12 @@ function bindPreviewHandlers() {
       }
     });
   }
+*/
+
+  
 }
 
+  
 function attachZoom(modal) {
   const wrap = modal.querySelector('.zoom-wrap');
   const img = modal.querySelector('#zoom-img');
