@@ -175,8 +175,7 @@ function bindPreviewHandlers() {
   });
 
   /*
-  
-  if (!isTouch) {
+if (!isTouch) {
     const preview = document.getElementById('image-preview');
     let moveHandler = null;
     document.addEventListener('mouseover', function (e) {
@@ -203,11 +202,9 @@ function bindPreviewHandlers() {
       }
     });
   }
-*/
-
-  
+    */
 }
-
+  
   
 function attachZoom(modal) {
   const wrap = modal.querySelector('.zoom-wrap');
