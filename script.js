@@ -28,7 +28,6 @@ function openMessenger(event) {
 }
 function openLine(event) {
   event.preventDefault();
-
   window.open('https://line.me/R/ti/p/sreenoomhihi', '_blank');
   toggleContactMenu();
 }
@@ -48,47 +47,77 @@ const SHEET_NAME = 'Product';
 const VALID_CATEGORIES = ['new', 'gaming', 'gadget it', 'music equipment', 'common', 'motorcycle/car parts', 'sport', 'promotion'];
 const menuEl = document.getElementById('menu-container');
 let ALL_ITEMS = [];
-let currentCategory = 'new';
+let currentCategory = 'all';
+
+// ตัวแปรสำหรับค้นหาและเรียงลำดับ
+let currentSearchQuery = '';
+let currentSortOrder = '';
 
 (function loadViaJSONP() {
   if (menuEl) menuEl.innerHTML = '<p style="text-align:center;padding:40px;color:#666;">กำลังโหลดสินค้า…</p>';
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}&tqx=out:json;responseHandler:__sheet_cb__&tq=${encodeURIComponent('select *')}`;
+  
+  // เปลี่ยนจาก select * เป็นระบุคอลัมน์ชัดเจน
+  const query = 'select A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T';
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}&tqx=out:json;responseHandler:__sheet_cb__&tq=${encodeURIComponent(query)}`;
+  
   const s = document.createElement('script');
   s.src = url;
   s.onerror = () => { if (menuEl) menuEl.innerHTML = '<p style="text-align:center;padding:40px;color:#c00;">โหลดข้อมูลไม่สำเร็จ (script load error)</p>'; };
   document.body.appendChild(s);
 })();
 
-// JSONP callback
+// JSONP callback - เวอร์ชันทดสอบแบบง่าย
 function __sheet_cb__(json) {
   try {
     const rows = json.table?.rows || [];
+    
+    // แสดงแถวแรกทั้งหมดเพื่อดูว่ามีคอลัมน์อะไรบ้าง
+    if (rows.length > 0) {
+      console.log('=== FIRST ROW DEBUG ===');
+      const firstRow = rows[0].c || [];
+      firstRow.forEach((col, idx) => {
+        if (col?.v !== null && col?.v !== undefined) {
+          console.log(`c[${idx}] = "${col.v}"`);
+        }
+      });
+      console.log('======================');
+    }
+    
     ALL_ITEMS = rows.map((r, i) => {
       const c = r.c || [];
-      if (i === 0) console.log('Row sample:', c.map(x => x?.v)); // ✅ อยู่ข้างใน map
+      
+      // Debug แถวแรก 3 แถว
+      if (i < 3) {
+        console.log(`Row ${i} - c[19]:`, c[19]?.v);
+      }
+
       return {
-        name: c[3]?.v ?? 'ไม่ระบุชื่อ',
+        name: c[0]?.v ?? c[3]?.v ?? 'ไม่ระบุชื่อ',
+        detail: c[19]?.v ?? '', // ✅ ดึงจาก Product Detail คอลัมน์ใหม่
         price:
           (c[10]?.v === null ||
             c[10]?.v === undefined ||
             c[10]?.v === '' ||
-            c[10]?.v === 0 ||
-            c[10]?.v === '0')
-            ? ' ยังไม่ระบุราคา'
+            c[10]?.v === 0)
+            ? 'ยังไม่ระบุราคา'
             : c[10]?.v,
         image: c[17]?.v ?? '',
+        shopeeLink: c[18]?.v ?? '',
         stock: (c[6]?.v ?? '').toString().trim().toLowerCase(),
         category: (c[15]?.v ?? '').toString().trim().toLowerCase(),
-        shopeeLink: (c.length > 18 ? c[18]?.v : '') ?? '',// ✅ ลิงก์ Shopee (คอลัมน์ S)
         _rowIndex: i
       };
     }).filter(p =>
       ['in stock', 'instock', 'available'].includes(p.stock)
     );
 
+    console.log('✅ Sample product with detail:', ALL_ITEMS.find(p => p.detail));
+    console.log('📊 Total products loaded:', ALL_ITEMS.length);
+    
     renderCategory(currentCategory);
     bindCategoryMenu();
     bindPreviewHandlers();
+    bindSearchAndSort();
   } catch (err) {
     console.error(err);
     if (menuEl)
@@ -99,35 +128,206 @@ function __sheet_cb__(json) {
   }
 }
 
+// ===== ฟังก์ชันค้นหาและเรียงลำดับ =====
+function bindSearchAndSort() {
+  const searchInput = document.getElementById("searchInput");
+  const priceSort = document.getElementById("priceSort");
+
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      currentSearchQuery = searchInput.value.toLowerCase();
+      renderCategory(currentCategory);
+    });
+  }
+
+  if (priceSort) {
+    priceSort.addEventListener("change", () => {
+      currentSortOrder = priceSort.value;
+      renderCategory(currentCategory);
+    });
+  }
+}
+
+function applyFilters(items) {
+  let filtered = [...items];
+
+  // ค้นหา
+  if (currentSearchQuery) {
+    filtered = filtered.filter(p =>
+      p.name && p.name.toLowerCase().includes(currentSearchQuery)
+    );
+  }
+
+  // เรียงลำดับราคา
+  if (currentSortOrder === 'asc') {
+    filtered.sort((a, b) => {
+      const priceA = typeof a.price === 'number' ? a.price : 0;
+      const priceB = typeof b.price === 'number' ? b.price : 0;
+      return priceA - priceB;
+    });
+  } else if (currentSortOrder === 'desc') {
+    filtered.sort((a, b) => {
+      const priceA = typeof a.price === 'number' ? a.price : 0;
+      const priceB = typeof b.price === 'number' ? b.price : 0;
+      return priceB - priceA;
+    });
+  }
+
+  return filtered;
+}
 
 // ===== Rendering =====
 function renderCategory(cat) {
   const want = norm(cat);
   let list = ALL_ITEMS;
-  if (VALID_CATEGORIES.includes(want)) {
+  
+  // กรองตามหมวดหมู่
+  if (want === 'all') {
+    // ถ้าเป็น 'all' ให้แสดงเฉพาะสินค้าที่อยู่ใน VALID_CATEGORIES เท่านั้น
+    list = ALL_ITEMS.filter(p => VALID_CATEGORIES.includes(p.category || 'new'));
+  } else if (VALID_CATEGORIES.includes(want)) {
+    // ถ้าเป็นหมวดหมู่เฉพาะ ให้กรองเฉพาะหมวดหมู่นั้น
     list = ALL_ITEMS.filter(p => (p.category || 'new') === want);
+  } else {
+    // ถ้าไม่ตรงเงื่อนไขใดๆ ให้แสดงทั้งหมดที่อยู่ใน VALID_CATEGORIES
+    list = ALL_ITEMS.filter(p => VALID_CATEGORIES.includes(p.category || 'new'));
   }
-  // ใหม่อยู่บน
-  list = list.slice().sort((a, b) => (b._rowIndex ?? 0) - (a._rowIndex ?? 0));
+  
+  // ใช้ filters (ค้นหา + เรียงลำดับ)
+  list = applyFilters(list);
+  
+  // เรียงจากใหม่สุดไปเก่าสุด (ถ้ายังไม่ได้เรียงด้วยราคา)
+  if (!currentSortOrder) {
+    list = list.slice().sort((a, b) => (b._rowIndex ?? 0) - (a._rowIndex ?? 0));
+  }
 
   if (!list.length) {
-    if (menuEl) menuEl.innerHTML = '<div class="no-products" style="text-align:center;padding:40px;color:#666;">สินค้ารออัพเดต</div>';
+    if (menuEl) menuEl.innerHTML = '<div class="no-products" style="text-align:center;padding:40px;color:#666;">ไม่พบสินค้าที่ต้องการ</div>';
     return;
   }
+  
   if (!menuEl) return;
+  
   menuEl.innerHTML = list.map(p => {
     const imgUrl = sanitizeDriveImage(p.image);
     const price = typeof p.price === 'number' ? p.price.toLocaleString('th-TH') : p.price;
     const name = (p.name || '').trim() || 'ไม่ระบุชื่อ';
+    const detail = (p.detail || '').trim();
+    const productData = escapeHtml(JSON.stringify({
+      name: name,
+      price: price,
+      image: imgUrl,
+      detail: detail,
+      shopeeLink: p.shopeeLink || ''
+    }));
+    
     return `
-      <div class="menu-item">
+      <div class="menu-item" data-product='${productData}'>
         <img src="${imgUrl}" alt="${escapeHtml(name)}" loading="lazy"
              onerror="this.onerror=null;this.src='';this.style.background='#f3f3f3';">
         <h3>${escapeHtml(name)}</h3>
         <div class="price-tag">ราคา : ${escapeHtml(price)} บาท</div>
-        ${p.shopeeLink ? `<a href="${p.shopeeLink}" target="_blank" class="compare-btn">เปรียบเทียบราคา</a>` : ""}
+
+         <!-- 
+   ${p.shopeeLink ? `<a href="${p.shopeeLink}" target="_blank" class="compare-btn" onclick="event.stopPropagation()">เปรียบเทียบราคา</a>` : ""} -->
       </div>`;
   }).join('');
+  
+  // เพิ่ม event listener สำหรับ Quick View
+  bindQuickView();
+}
+
+// ===== Quick View Popup =====
+function bindQuickView() {
+  const items = document.querySelectorAll('.menu-item');
+  items.forEach(item => {
+    item.addEventListener('click', (e) => {
+      // ไม่เปิด popup ถ้ากดที่รูปภาพ (เพราะมี zoom อยู่แล้ว)
+      if (e.target.tagName === 'IMG') return;
+      // ไม่เปิด popup ถ้ากดที่ปุ่ม Shopee
+      if (e.target.classList.contains('compare-btn')) return;
+      
+      const productJson = item.getAttribute('data-product');
+      if (!productJson) return;
+      
+      try {
+        const product = JSON.parse(productJson);
+        showQuickView(product);
+      } catch (err) {
+        console.error('Error parsing product data:', err);
+      }
+    });
+  });
+}
+
+function showQuickView(product) {
+  // ลบ popup เก่าถ้ามี
+  let popup = document.getElementById('quick-view-popup');
+  if (popup) popup.remove();
+  
+  // สร้าง popup ใหม่
+  popup = document.createElement('div');
+  popup.id = 'quick-view-popup';
+  popup.className = 'quick-view-popup';
+  
+  const detailHtml = product.detail
+    ? `<div class="qv-detail">
+         <h4>รายละเอียด</h4>
+         <p>${escapeHtml(product.detail).replace(/\n/g, '<br>')}</p>
+       </div>`
+    : '';
+  
+  const shopeeBtn = product.shopeeLink
+    ? `<a href="${product.shopeeLink}" target="_blank" class="qv-shopee-btn">
+         <i class="fas fa-shopping-cart"></i> เปรียบเทียบราคาที่ Shopee
+       </a>`
+    : '';
+  
+  popup.innerHTML = `
+    <div class="qv-overlay"></div>
+    <div class="qv-card">
+      <button class="qv-close">×</button>
+      <div class="qv-content">
+        <div class="qv-left">
+          <img src="${product.image}" alt="${escapeHtml(product.name)}" 
+               onerror="this.onerror=null;this.src='';this.style.background='#f3f3f3';">
+          <div class="qv-price">ราคา: ${escapeHtml(product.price)} บาท</div>
+        </div>
+        <div class="qv-right">
+          <h3 class="qv-name">${escapeHtml(product.name)}</h3>
+          ${detailHtml}
+          ${shopeeBtn}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(popup);
+  document.body.style.overflow = 'hidden';
+  
+  // แสดง popup ด้วย animation
+  setTimeout(() => popup.classList.add('active'), 10);
+  
+  // ปิด popup
+  const closePopup = () => {
+    popup.classList.remove('active');
+    setTimeout(() => {
+      popup.remove();
+      document.body.style.overflow = '';
+    }, 300);
+  };
+  
+  popup.querySelector('.qv-close').addEventListener('click', closePopup);
+  popup.querySelector('.qv-overlay').addEventListener('click', closePopup);
+  
+  // ปิดด้วย ESC
+  const escHandler = (e) => {
+    if (e.key === 'Escape') {
+      closePopup();
+      document.removeEventListener('keydown', escHandler);
+    }
+  };
+  document.addEventListener('keydown', escHandler);
 }
 
 // ===== Menu events =====
@@ -137,7 +337,7 @@ function bindCategoryMenu() {
     btn.addEventListener('click', () => {
       btns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      currentCategory = btn.dataset.category || 'new';
+      currentCategory = btn.dataset.category || 'all';
       renderCategory(currentCategory);
     });
   });
@@ -173,39 +373,8 @@ function bindPreviewHandlers() {
     e.preventDefault(); e.stopPropagation();
     openModalWith(img.getAttribute('src'));
   });
-
-  /*
-if (!isTouch) {
-    const preview = document.getElementById('image-preview');
-    let moveHandler = null;
-    document.addEventListener('mouseover', function (e) {
-      if (e.target.tagName === 'IMG' && e.target.closest('.menu-item')) {
-        const src = e.target.getAttribute('src');
-        if (src) {
-          preview.style.display = 'block';
-          preview.querySelector('img').src = src;
-          moveHandler = (ev) => {
-            const offset = 20;
-            const rect = preview.getBoundingClientRect();
-            const ww = window.innerWidth, wh = window.innerHeight;
-            let left = ev.pageX + offset, top = ev.pageY + offset;
-            if (left + rect.width > ww) left = ev.pageX - rect.width - offset;
-            if (top + rect.height > wh) top = ev.pageY - rect.height - offset;
-            preview.style.left = left + 'px';
-            preview.style.top = top + 'px';
-          };
-          document.addEventListener('mousemove', moveHandler);
-        }
-      } else {
-        preview.style.display = 'none';
-        if (moveHandler) { document.removeEventListener('mousemove', moveHandler); moveHandler = null; }
-      }
-    });
-  }
-    */
 }
-  
-  
+
 function attachZoom(modal) {
   const wrap = modal.querySelector('.zoom-wrap');
   const img = modal.querySelector('#zoom-img');
@@ -299,25 +468,21 @@ function escapeHtml(s) {
   if (!header) return;
 
   let lastY = window.scrollY || 0;
-  const SHOW_AT_TOP_PX = 24;    // near top -> always show
-  const THRESH = 2;             // small deadzone to reduce jitter on tiny scrolls
+  const SHOW_AT_TOP_PX = 24;
+  const THRESH = 2;
 
   function onScroll() {
     const y = window.scrollY || 0;
 
-    // Always show when near the very top
     if (y <= SHOW_AT_TOP_PX) {
       header.classList.remove('hide');
       lastY = y;
       return;
     }
 
-    // Determine direction with small threshold
     if (y > lastY + THRESH) {
-      // Scrolling down -> hide instantly
       header.classList.add('hide');
     } else if (y < lastY - THRESH) {
-      // Scrolling up -> show instantly
       header.classList.remove('hide');
     }
     lastY = y;
