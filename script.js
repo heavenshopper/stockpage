@@ -55,11 +55,11 @@ let currentSortOrder = '';
 
 (function loadViaJSONP() {
   if (menuEl) menuEl.innerHTML = '<p style="text-align:center;padding:40px;color:#666;">กำลังโหลดสินค้า…</p>';
-  
+
   // เปลี่ยนจาก select * เป็นระบุคอลัมน์ชัดเจน
   const query = 'select A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T';
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}&tqx=out:json;responseHandler:__sheet_cb__&tq=${encodeURIComponent(query)}`;
-  
+
   const s = document.createElement('script');
   s.src = url;
   s.onerror = () => { if (menuEl) menuEl.innerHTML = '<p style="text-align:center;padding:40px;color:#c00;">โหลดข้อมูลไม่สำเร็จ (script load error)</p>'; };
@@ -67,33 +67,34 @@ let currentSortOrder = '';
 })();
 
 // JSONP callback - เวอร์ชันทดสอบแบบง่าย
+
 function __sheet_cb__(json) {
   try {
     const rows = json.table?.rows || [];
-    
+
     // แสดงแถวแรกทั้งหมดเพื่อดูว่ามีคอลัมน์อะไรบ้าง
     if (rows.length > 0) {
-      console.log('=== FIRST ROW DEBUG ===');
+      //console.log('=== FIRST ROW DEBUG ===');
       const firstRow = rows[0].c || [];
       firstRow.forEach((col, idx) => {
         if (col?.v !== null && col?.v !== undefined) {
-          console.log(`c[${idx}] = "${col.v}"`);
+         // console.log(`c[${idx}] = "${col.v}"`);
         }
       });
-      console.log('======================');
+      //console.log('======================');
     }
-    
+
     ALL_ITEMS = rows.map((r, i) => {
       const c = r.c || [];
-      
+
       // Debug แถวแรก 3 แถว
       if (i < 3) {
-        console.log(`Row ${i} - c[19]:`, c[19]?.v);
+       //console.log(`Row ${i} - c[19]:`, c[19]?.v);
       }
 
       return {
         name: c[0]?.v ?? c[3]?.v ?? 'ไม่ระบุชื่อ',
-        detail: c[19]?.v ?? '', // ✅ ดึงจาก Product Detail คอลัมน์ใหม่
+        detail: c[3]?.v ?? '', // ✅ ดึงจาก Product Detail คอลัมน์ใหม่
         price:
           (c[10]?.v === null ||
             c[10]?.v === undefined ||
@@ -111,9 +112,9 @@ function __sheet_cb__(json) {
       ['in stock', 'instock', 'available'].includes(p.stock)
     );
 
-    console.log('✅ Sample product with detail:', ALL_ITEMS.find(p => p.detail));
-    console.log('📊 Total products loaded:', ALL_ITEMS.length);
-    
+    // console.log('✅ Sample product with detail:', ALL_ITEMS.find(p => p.detail));
+    // console.log('📊 Total products loaded:', ALL_ITEMS.length);
+
     renderCategory(currentCategory);
     bindCategoryMenu();
     bindPreviewHandlers();
@@ -127,6 +128,7 @@ function __sheet_cb__(json) {
         '</p>';
   }
 }
+
 
 // ===== ฟังก์ชันค้นหาและเรียงลำดับ =====
 function bindSearchAndSort() {
@@ -180,7 +182,7 @@ function applyFilters(items) {
 function renderCategory(cat) {
   const want = norm(cat);
   let list = ALL_ITEMS;
-  
+
   // กรองตามหมวดหมู่
   if (want === 'all') {
     // ถ้าเป็น 'all' ให้แสดงเฉพาะสินค้าที่อยู่ใน VALID_CATEGORIES เท่านั้น
@@ -192,10 +194,10 @@ function renderCategory(cat) {
     // ถ้าไม่ตรงเงื่อนไขใดๆ ให้แสดงทั้งหมดที่อยู่ใน VALID_CATEGORIES
     list = ALL_ITEMS.filter(p => VALID_CATEGORIES.includes(p.category || 'new'));
   }
-  
+
   // ใช้ filters (ค้นหา + เรียงลำดับ)
   list = applyFilters(list);
-  
+
   // เรียงจากใหม่สุดไปเก่าสุด (ถ้ายังไม่ได้เรียงด้วยราคา)
   if (!currentSortOrder) {
     list = list.slice().sort((a, b) => (b._rowIndex ?? 0) - (a._rowIndex ?? 0));
@@ -205,9 +207,9 @@ function renderCategory(cat) {
     if (menuEl) menuEl.innerHTML = '<div class="no-products" style="text-align:center;padding:40px;color:#666;">ไม่พบสินค้าที่ต้องการ</div>';
     return;
   }
-  
+
   if (!menuEl) return;
-  
+
   menuEl.innerHTML = list.map(p => {
     const imgUrl = sanitizeDriveImage(p.image);
     const price = typeof p.price === 'number' ? p.price.toLocaleString('th-TH') : p.price;
@@ -220,19 +222,28 @@ function renderCategory(cat) {
       detail: detail,
       shopeeLink: p.shopeeLink || ''
     }));
-    
-    return `
-      <div class="menu-item" data-product='${productData}'>
-        <img src="${imgUrl}" alt="${escapeHtml(name)}" loading="lazy"
-             onerror="this.onerror=null;this.src='';this.style.background='#f3f3f3';">
-        <h3>${escapeHtml(name)}</h3>
-        <div class="price-tag">ราคา : ${escapeHtml(price)} บาท</div>
 
-         <!-- 
-   ${p.shopeeLink ? `<a href="${p.shopeeLink}" target="_blank" class="compare-btn" onclick="event.stopPropagation()">เปรียบเทียบราคา</a>` : ""} -->
-      </div>`;
-  }).join('');
+    return `
+  <div class="menu-item" data-product='${productData}'>
+    <img src="${imgUrl}" alt="${escapeHtml(name)}" loading="lazy"
+         onerror="this.onerror=null;this.src='';this.style.background='#f3f3f3';">
+
+    <h3>${escapeHtml(name)}</h3>
+
+    ${false && detail ? `
+      <div class="short-detail">
+        ${escapeHtml(detail).substring(0, 120)}${detail.length > 120 ? '...' : ''}
+      </div>
+    ` : ''}
   
+
+    <div class="price-tag">ราคา : ${escapeHtml(price)} บาท</div>
+  </div>`;
+  }).join('');
+
+
+
+
   // เพิ่ม event listener สำหรับ Quick View
   bindQuickView();
 }
@@ -246,10 +257,10 @@ function bindQuickView() {
       if (e.target.tagName === 'IMG') return;
       // ไม่เปิด popup ถ้ากดที่ปุ่ม Shopee
       if (e.target.classList.contains('compare-btn')) return;
-      
+
       const productJson = item.getAttribute('data-product');
       if (!productJson) return;
-      
+
       try {
         const product = JSON.parse(productJson);
         showQuickView(product);
@@ -264,25 +275,25 @@ function showQuickView(product) {
   // ลบ popup เก่าถ้ามี
   let popup = document.getElementById('quick-view-popup');
   if (popup) popup.remove();
-  
+
   // สร้าง popup ใหม่
   popup = document.createElement('div');
   popup.id = 'quick-view-popup';
   popup.className = 'quick-view-popup';
-  
+
   const detailHtml = product.detail
     ? `<div class="qv-detail">
          <h4>รายละเอียด</h4>
          <p>${escapeHtml(product.detail).replace(/\n/g, '<br>')}</p>
        </div>`
     : '';
-  
+
   const shopeeBtn = product.shopeeLink
     ? `<a href="${product.shopeeLink}" target="_blank" class="qv-shopee-btn">
          <i class="fas fa-shopping-cart"></i> เปรียบเทียบราคาที่ Shopee
        </a>`
     : '';
-  
+
   popup.innerHTML = `
     <div class="qv-overlay"></div>
     <div class="qv-card">
@@ -301,13 +312,13 @@ function showQuickView(product) {
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(popup);
   document.body.style.overflow = 'hidden';
-  
+
   // แสดง popup ด้วย animation
   setTimeout(() => popup.classList.add('active'), 10);
-  
+
   // ปิด popup
   const closePopup = () => {
     popup.classList.remove('active');
@@ -316,10 +327,10 @@ function showQuickView(product) {
       document.body.style.overflow = '';
     }, 300);
   };
-  
+
   popup.querySelector('.qv-close').addEventListener('click', closePopup);
   popup.querySelector('.qv-overlay').addEventListener('click', closePopup);
-  
+
   // ปิดด้วย ESC
   const escHandler = (e) => {
     if (e.key === 'Escape') {
@@ -487,6 +498,31 @@ function escapeHtml(s) {
     }
     lastY = y;
   }
+
+
+  setInterval(function () {
+    if (window.outerWidth - window.innerWidth > 160 ||
+      window.outerHeight - window.innerHeight > 160) {
+      document.body.innerHTML = '';
+    }
+  }, 1000);
+
+
+  // ปิดคลิกขวา
+  document.addEventListener('contextmenu', e => e.preventDefault());
+
+  // กัน F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+  document.addEventListener('keydown', function (e) {
+    if (
+      e.key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) ||
+      (e.ctrlKey && e.key === 'u')
+    ) {
+      e.preventDefault();
+    }
+  });
+
+
 
   window.addEventListener('scroll', onScroll, { passive: true });
 })();
