@@ -129,7 +129,6 @@ function __sheet_cb__(json) {
   }
 }
 
-
 // ===== ฟังก์ชันค้นหาและเรียงลำดับ =====
 function bindSearchAndSort() {
   const searchInput = document.getElementById("searchInput");
@@ -499,14 +498,14 @@ function escapeHtml(s) {
     lastY = y;
   }
 
-
+/*
   setInterval(function () {
     if (window.outerWidth - window.innerWidth > 160 ||
       window.outerHeight - window.innerHeight > 160) {
       document.body.innerHTML = '';
     }
   }, 1000);
-
+*/
 
   // ปิดคลิกขวา
   document.addEventListener('contextmenu', e => e.preventDefault());
