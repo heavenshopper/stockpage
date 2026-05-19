@@ -47,7 +47,7 @@ const SHEET_NAME = 'Product';
 const VALID_CATEGORIES = ['new', 'gaming', 'gadget it', 'music equipment', 'common', 'motorcycle/car parts', 'sport', 'promotion'];
 const menuEl = document.getElementById('menu-container');
 let ALL_ITEMS = [];
-let currentCategory = 'all';
+let currentCategory = 'new';
 
 // ตัวแปรสำหรับค้นหาและเรียงลำดับ
 let currentSearchQuery = '';
