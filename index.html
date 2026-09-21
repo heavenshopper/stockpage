@@ -26,11 +26,23 @@
         <div class="contact-subtitle">ส่งข้อความหาเราผ่าน Messenger</div>
       </div>
     </a>
+    <a class="contact-item line" href="#" onclick="openLine(event)">
+      <div class="contact-icon"><i class="fab fa-line"></i></div>
+      <div class="contact-info">
+        <div class="contact-title">LINE Official / แชท</div>
+        <div class="contact-subtitle">สอบถามผ่าน LINE</div>
+      </div>
+    </a>
   </div>
 </div>
 
 <button class="fab-main" id="fabMain" onclick="toggleContactMenu()">
   <i class="fas fa-comment" id="fabIcon"></i>
+</button>
+
+<!-- ปุ่ม Back to Top -->
+<button class="back-to-top" id="backToTop" title="กลับขึ้นบนสุด">
+  <i class="fas fa-arrow-up"></i>
 </button>
 
 <div class="header">
@@ -52,7 +64,7 @@
       <button class="category-btn" data-category="music equipment">🎸 ดนตรี</button>
     </div>
 
-    <!-- NEW: tools bar -->
+    <!-- tools bar -->
     <div class="tools-bar">
       <input id="searchInput" type="text" placeholder="ค้นหาชื่อสินค้า..." />
       <select id="priceSort">
@@ -60,14 +72,17 @@
         <option value="asc">น้อย → มาก</option>
         <option value="desc">มาก → น้อย</option>
       </select>
-      <div class="last-update"> <span id="lastUpdate"></span></div>
+      <button id="darkToggle" class="theme-toggle-btn" title="สลับโหมดมืด/สว่าง">
+        <i class="fas fa-moon"></i>
+      </button>
+      <div class="last-update"><span id="lastUpdate">กำลังโหลดสต๊อก...</span></div>
     </div>
 
   </div>
 </div>
 
 <div class="menu-grid" id="menu-container">
-  <div class="loading">กำลังโหลดสินค้า...</div>
+  <!-- Skeleton Loading จะถูกเรนเดอร์ผ่าน JS ระหว่างรอข้อมูล -->
 </div>
 
 <div class="preview-modal" id="preview-modal">
@@ -77,7 +92,18 @@
   </div>
 </div>
 
-<script src="https://www.gstatic.com/charts/loader.js"></script>
 <script src="script.js"></script>
+
+
+<footer class="site-footer">
+  <div class="footer-container">
+
+    <div class="footer-info">
+      <p>© 2026 <strong>HEAVEN SHOPPER</strong>. All Rights Reserved.</p>
+      <p class="owner-tag"><i class="fas fa-user-check"></i> ติดต่อ : <span>FB:Kiattisak Janterm</span></p>
+    </div>
+  </div>
+</footer>
+
 </body>
 </html>
