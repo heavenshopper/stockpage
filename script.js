@@ -57,52 +57,77 @@ let displayedCount = 0;
 
 // ===== Dark Mode & Back To Top Setup =====
 function initUIControls() {
-  // ===== UI Controls & Scroll Logic =====
-  function initUIControls() {
-    // Dark Mode Toggle
-    const themeBtn = document.getElementById('darkToggle');
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      document.body.classList.add('dark-mode');
-      if (themeBtn) themeBtn.innerHTML = '<i class="fas fa-sun"></i>';
-    }
+  // Dark Mode Toggle
+  const themeBtn = document.getElementById('darkToggle');
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark') {
+    document.body.classList.add('dark-mode');
+    if (themeBtn) themeBtn.innerHTML = '<i class="fas fa-sun"></i>';
+  }
 
-    themeBtn?.addEventListener('click', () => {
-      document.body.classList.toggle('dark-mode');
-      const isDark = document.body.classList.contains('dark-mode');
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
-      themeBtn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-    });
+  themeBtn?.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    themeBtn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+  });
 
-    // Scroll Events (พับ Header / ปุ่ม Back to Top / Infinite Scroll)
-    const headerEl = document.querySelector('.header');
-    const bttBtn = document.getElementById('backToTop');
+  // Scroll Events (ซ่อน/แสดง Header ทั้งก้อน / ปุ่ม Back to Top / Infinite Scroll)
+  const headerEl = document.querySelector('.header');
+  const bttBtn = document.getElementById('backToTop');
+  let anchorY = window.scrollY; // จุดอ้างอิงที่จะขยับก็ต่อเมื่อมีการเปลี่ยนสถานะจริงเท่านั้น
+  let headerHidden = false;
+  let scrollTicking = false;
+  const TOGGLE_THRESHOLD = 10; // ต้องเลื่อนสะสมเกินกี่ px ถึงจะสลับสถานะ
 
-    window.addEventListener('scroll', () => {
-      // 1. พับ Header เก็บเมื่อเลื่อนจอลงมาเกิน 40px
-      if (window.scrollY > 40) {
-        headerEl?.classList.add('scrolled');
-      } else {
+  window.addEventListener('scroll', () => {
+    if (scrollTicking) return;
+    scrollTicking = true;
+
+    requestAnimationFrame(() => {
+      const currentY = Math.max(0, window.scrollY);
+
+      // 1. ซ่อน Header ทั้งก้อนเมื่อเลื่อนลง / แสดงกลับเมื่อเลื่อนขึ้น
+      if (currentY <= 40) {
+        // อยู่บนสุด แสดง header เต็มรูปแบบเสมอ
+        headerEl?.classList.remove('header-hidden');
         headerEl?.classList.remove('scrolled');
+        headerHidden = false;
+        anchorY = currentY;
+      } else if (!headerHidden && currentY > anchorY + TOGGLE_THRESHOLD) {
+        // เลื่อนลงสะสมเกิน threshold -> ซ่อน header ทั้งก้อน
+        headerEl?.classList.add('header-hidden');
+        headerHidden = true;
+        anchorY = currentY;
+      } else if (headerHidden && currentY < anchorY - TOGGLE_THRESHOLD) {
+        // เลื่อนขึ้นสะสมเกิน threshold -> แสดง header กลับมา (แบบพับกระชับ)
+        headerEl?.classList.remove('header-hidden');
+        headerEl?.classList.add('scrolled');
+        headerHidden = false;
+        anchorY = currentY;
       }
+      // หมายเหตุ: ถ้ายังไม่ถึง threshold จะไม่ขยับ anchorY เพื่อให้ scroll เล็กๆ
+      // ต่อเนื่องกันหลายเฟรมสะสมระยะทางได้ถูกต้อง แทนที่จะรีเซ็ตทุกเฟรม
 
       // 2. แสดง/ซ่อนปุ่ม Back to Top
-      if (window.scrollY > 300) {
+      if (currentY > 300) {
         bttBtn?.classList.add('show');
       } else {
         bttBtn?.classList.remove('show');
       }
 
       // 3. Infinite Scroll trigger
-      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+      if ((window.innerHeight + currentY) >= document.body.offsetHeight - 500) {
         renderMoreItems();
       }
-    });
 
-    bttBtn?.addEventListener('click', () => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollTicking = false;
     });
-  }
+  });
+
+  bttBtn?.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
 }
 
 // ===== Skeleton Loading =====
@@ -121,10 +146,44 @@ function renderSkeleton() {
   menuEl.innerHTML = skeletonHTML;
 }
 
-// ===== JSONP Data Fetching =====
-(function loadViaJSONP() {
+// ===== JSONP Data Fetching (พร้อม Retry) =====
+let dataLoaded = false;
+let loadTimeoutId = null;
+let currentSheetScript = null;
+const LOAD_TIMEOUT_MS = 20000;
+
+function showLoadError() {
+  if (!menuEl) return;
+  menuEl.innerHTML = `
+    <div style="text-align:center;grid-column:1/-1;padding:40px;color:#c00;">
+      <p style="margin-bottom:14px;">⚠️ โหลดข้อมูลไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่อีกครั้ง</p>
+      <button id="retryLoadBtn" class="retry-btn">
+        <i class="fas fa-rotate-right"></i> ลองใหม่
+      </button>
+    </div>
+  `;
+  document.getElementById('retryLoadBtn')?.addEventListener('click', retryLoad);
+}
+
+function retryLoad() {
+  dataLoaded = false;
+  const lastUpdateEl = document.getElementById('lastUpdate');
+  if (lastUpdateEl) lastUpdateEl.textContent = 'กำลังโหลดสต๊อก...';
+  loadViaJSONP();
+}
+
+function loadViaJSONP() {
   renderSkeleton();
-  initUIControls();
+
+  // ลบ script tag เก่าออกก่อน (เผื่อเป็นการลองใหม่)
+  if (currentSheetScript) {
+    currentSheetScript.remove();
+    currentSheetScript = null;
+  }
+  if (loadTimeoutId) {
+    clearTimeout(loadTimeoutId);
+    loadTimeoutId = null;
+  }
 
   const query = 'select A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T';
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}&tqx=out:json;responseHandler:__sheet_cb__&tq=${encodeURIComponent(query)}`;
@@ -132,12 +191,27 @@ function renderSkeleton() {
   const s = document.createElement('script');
   s.src = url;
   s.onerror = () => {
-    if (menuEl) menuEl.innerHTML = '<p style="text-align:center;padding:40px;color:#c00;">โหลดข้อมูลไม่สำเร็จ (script load error)</p>';
+    showLoadError();
   };
   document.body.appendChild(s);
-})();
+  currentSheetScript = s;
+
+  // Fallback timeout เผื่อ callback ไม่ถูกเรียกเลย (เช่น เน็ตช้ามาก/ตัน)
+  loadTimeoutId = setTimeout(() => {
+    if (!dataLoaded) showLoadError();
+  }, LOAD_TIMEOUT_MS);
+}
+
+// เริ่มโหลดครั้งแรก
+loadViaJSONP();
+initUIControls();
 
 function __sheet_cb__(json) {
+  dataLoaded = true;
+  if (loadTimeoutId) {
+    clearTimeout(loadTimeoutId);
+    loadTimeoutId = null;
+  }
   try {
     const rows = json.table?.rows || [];
 
@@ -169,7 +243,7 @@ function __sheet_cb__(json) {
     bindSearchAndSort();
   } catch (err) {
     console.error(err);
-    if (menuEl) menuEl.innerHTML = '<p style="text-align:center;padding:40px;color:#c00;">โหลดข้อมูลไม่สำเร็จ</p>';
+    showLoadError();
   }
 }
 
@@ -301,7 +375,7 @@ function showQuickView(product) {
   // ตรวจสอบข้อมูล Shopee จากคอลัมน์ S
   const rawShopeeLink = (product.shopeeLink || '').toString().trim();
   const hasShopeeLink = rawShopeeLink !== '';
-
+  
   // แสดงปุ่มเฉพาะเมื่อมีข้อมูลในคอลัมน์ S
   const shopeeBtnHtml = hasShopeeLink ? `
     <a href="${escapeHtml(rawShopeeLink)}" target="_blank" class="qv-btn qv-btn-shopee">
@@ -347,17 +421,45 @@ function showQuickView(product) {
   popup.querySelector('.qv-close').onclick = closePopup;
   popup.querySelector('.qv-overlay').onclick = closePopup;
 
-  // Web Share API Action
-  document.getElementById('qvShareBtn').onclick = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: product.name,
-        text: `เช็คสต๊อกสินค้าพร้อมส่ง: ${product.name} ราคา ${product.price} บาท`,
-        url: window.location.href
-      }).catch(err => console.log('Error sharing:', err));
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert('คัดลอกลิงก์เรียบร้อยแล้ว!');
+  // กด "สั่งซื้อ" หรือ "เช็คราคาใน Shopee" -> ให้ feedback สั้นๆ ว่ากดแล้ว (ลิงก์เปิดแท็บใหม่ทำงานตามปกติ)
+  popup.querySelectorAll('.qv-btn-order, .qv-btn-shopee').forEach(link => {
+    link.addEventListener('click', () => {
+      link.classList.add('qv-btn-pressed');
+      setTimeout(() => link.classList.remove('qv-btn-pressed'), 400);
+    });
+  });
+
+  // Web Share API Action พร้อม loading state
+  const shareBtn = document.getElementById('qvShareBtn');
+  const shareBtnDefaultHTML = shareBtn.innerHTML;
+
+  shareBtn.onclick = async () => {
+    if (shareBtn.disabled) return;
+    shareBtn.disabled = true;
+    shareBtn.classList.add('qv-btn-loading');
+    shareBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังแชร์...';
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: product.name,
+          text: `เช็คสต๊อกสินค้าพร้อมส่ง: ${product.name} ราคา ${product.price} บาท`,
+          url: window.location.href
+        });
+        shareBtn.innerHTML = '<i class="fas fa-check"></i> แชร์สำเร็จ!';
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        shareBtn.innerHTML = '<i class="fas fa-check"></i> คัดลอกลิงก์แล้ว!';
+      }
+    } catch (err) {
+      console.log('Error sharing:', err);
+      shareBtn.innerHTML = shareBtnDefaultHTML;
+    } finally {
+      shareBtn.classList.remove('qv-btn-loading');
+      setTimeout(() => {
+        shareBtn.innerHTML = shareBtnDefaultHTML;
+        shareBtn.disabled = false;
+      }, 1800);
     }
   };
 }

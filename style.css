@@ -553,6 +553,49 @@ body {
   opacity: 0.9;
 }
 
+/* กด feedback สั้นๆ เมื่อกดปุ่มสั่งซื้อ/Shopee */
+.qv-btn-pressed {
+  transform: scale(0.93) !important;
+  opacity: 0.75 !important;
+}
+
+.qv-btn-loading {
+  opacity: 0.85;
+  cursor: wait;
+  pointer-events: none;
+}
+
+.qv-btn:disabled {
+  cursor: wait;
+  opacity: 0.85;
+}
+
+/* ปุ่มลองโหลดใหม่ เมื่อโหลดข้อมูลไม่สำเร็จ */
+.retry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: #fff;
+  font-family: 'Prompt', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retry-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.retry-btn:active {
+  transform: translateY(0) scale(0.96);
+}
+
 @media (max-width: 768px) {
   .qv-content {
     grid-template-columns: 1fr;
@@ -712,7 +755,13 @@ body {
   top: 0;
   z-index: 100;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  transition: padding 0.3s ease, box-shadow 0.3s ease;
+  transition: padding 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+/* เลื่อนลง -> ซ่อน header ทั้งก้อนออกไปนอกจอ, เลื่อนขึ้น -> เลื่อนกลับมาแสดง */
+.header.header-hidden {
+  transform: translateY(-100%);
+  box-shadow: none;
 }
 
 .site-header {
